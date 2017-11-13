@@ -15,11 +15,26 @@ userRouter.get('/', (req, res, next) => {
 
 userRouter.get('/:userid', (req, res, next) => {
   let userid = req.params.userid;
-  models.Page.findAll({
-    where: {authorId: userid},
-    attributes: ["title", 'urlTitle']
-  })
-  .then((result) => res.render('index', {pages: result}))
+  let userData = {};
+
+  let promises =
+  [
+    models.User.findOne({
+      where: {id: userid},
+      attributes: ['name', 'email']
+    })
+    .then(result => userData.info = result),
+
+    models.Page.findAll({
+      where: {authorId: userid},
+      attributes: ["title", 'urlTitle']
+    })
+    .then(result => userData.pages = result)
+  ];
+
+  Promise.all(promises)
+  .then(() => console.log(userData))
+  .then((result) => res.render('index', {pages: userData}))
   .catch(console.log);
 });
 
