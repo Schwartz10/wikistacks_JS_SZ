@@ -3,7 +3,7 @@ var db = new Sequelize('postgres://localhost:5432/wikistack', {
   logging: false
 });
 
-
+// define only takes 3 arguments: (1) table name, (2) table columns (3) methods
 const Page = db.define('page',
 {
   title: {type: Sequelize.STRING, allowNull: false},
@@ -17,7 +17,7 @@ const Page = db.define('page',
     route () {return '/wiki/' + this.urlTitle;}
   },
   hooks: {
-    beforeValidate: (page, title) => {
+    beforeValidate: (page, title) => { //should add logic to require unique titles
       if (page.title) {
         let specialChars = /[^a-zA-Z0-9 :]/g; //non alphanumeric
         let whiteSpace = /\s+/g; //for white space
@@ -44,7 +44,14 @@ const Page = db.define('page',
 const User = db.define('user', {
   name: {type: Sequelize.STRING, allowNull: false},
   email: {type: Sequelize.STRING, allowNull: false, validate: {isEmail: true}}
+},
+{
+  getterMethods: {
+    route() {return '/users/' + this.id;}
+  }
 });
+
+Page.belongsTo(User, { as: 'author' });
 
 module.exports = {db: db, Page: Page, User: User};
 

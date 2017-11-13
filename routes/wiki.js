@@ -30,15 +30,24 @@ wikiRouter.post('/', (req, res, next) => {
   let data = req.body;
 
   //Could check the length of the array of keys to make sure the user filled out everything.
-  Page.build({
-    title: data.page_title,
-    content: data.page_content,
-    status: data.page_status
+  User.findOne({where: {name: data.user_name}})
+  .then((result) => {
+    if (!result) {
+      return User.create({
+        name: data.user_name,
+        email: data.user_email
+      });
+    } else return result;
   })
-  .save()
-  .then((data) => {
-    res.redirect(data.route);
+  .then((resultingUser) => {
+    return Page.create({
+      title: data.page_title,
+      content: data.page_content,
+      status: data.page_status,
+      authorId: resultingUser.dataValues.id
+    });
   })
+  .then((newPageData) => res.redirect(newPageData.route))
   .catch(console.log);
 });
 
